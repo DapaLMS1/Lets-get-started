@@ -48,7 +48,7 @@
             <div id="mini-player-container" class="mb-8 mx-auto w-full max-w-md rounded-xl overflow-hidden shadow-2xl transition duration-300 border-4 border-indigo-200">
                 <!-- The main video element is initially inside this container -->
                 <video id="main-video" controls class="w-full h-auto rounded-lg" preload="auto">
-                    <source src="your-mp4-video-url-here.mp4" type="video/mp4">
+                    <source src="Lets-get-started.mp4" type="video/mp4">
                     Your browser does not support the video tag.
                 </video>
             </div>
@@ -63,7 +63,7 @@
             <div class="mt-8 space-y-4 text-sm text-gray-500">
                 <p>This is placeholder content. When the video modal is active, this text and the button above will appear slightly blurred and dimmed, achieving the background effect.</p>
                 <p>
-                    <span class="font-medium text-gray-700">Note:</span> Please replace the placeholder video URL in the HTML (`your-mp4-video-url-here.mp4`) with the public link to your actual MP4 file.
+                    <span class="font-medium text-gray-700">Note:</span> Please replace the placeholder video URL in the HTML (`Lets-get-started.mp4`) with the public link to your actual MP4 file.
                 </p>
             </div>
         </main>
@@ -210,7 +210,7 @@
         window.onload = () => {
              // Check the src of the first source element, not the video element itself
              const sourceElement = mainVideo.querySelector('source');
-             if (sourceElement && sourceElement.src.includes('your-mp4-video-url-here.mp4')) {
+             if (sourceElement && sourceElement.src.includes('Lets-get-started.mp4')) {
                 displayMessage("Remember to replace the placeholder URL with your actual MP4 link!", "Setup Required");
             }
         };
