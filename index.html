@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Foreground Video Modal</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Inter font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        /* Apply Inter font globally and ensure smooth transitions */
+        body {
+            font-family: 'Inter', sans-serif;
+            transition: filter 0.3s ease, opacity 0.3s ease;
+        }
+        /* Custom styling for the modal background overlay */
+        .modal-backdrop {
+            background-color: rgba(0, 0, 0, 0.9); /* Dark semi-transparent background */
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+    <!-- 
+        MAIN PAGE CONTENT CONTAINER 
+        This is what gets pushed to the "background" when the video is open.
+    -->
+    <div id="app-container" class="transition-all duration-300 p-6 md:p-12">
+        
+        <!-- Header -->
+        <header class="text-center mb-10">
+            <h1 class="text-4xl font-extrabold text-indigo-700">LMS Content Page</h1>
+            <p class="text-lg text-gray-500 mt-2">Interact with the mini-player tile or launch the full-screen experience.</p>
+        </header>
+
+        <!-- Main Body Content -->
+        <main class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-2xl border border-gray-100">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Course Introduction Module</h2>
+            <p class="text-gray-600 mb-6 leading-relaxed">
+                Welcome to the module! The video below acts as a mini-player tile. You can play it here, or click the button to expand it into the full-screen foreground mode for maximum focus.
+            </p>
+
+            <!-- 
+                VIDEO MINI-PLAYER TILE CONTAINER 
+                The single video element starts here.
+            -->
+            <div id="mini-player-container" class="mb-8 mx-auto w-full max-w-md rounded-xl overflow-hidden shadow-2xl transition duration-300 border-4 border-indigo-200">
+                <!-- The main video element is initially inside this container -->
+                <video id="main-video" controls class="w-full h-auto rounded-lg" preload="auto">
+                    <source src="your-mp4-video-url-here.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+
+
+            <!-- Video Launch Button -->
+            <button id="open-video-btn" 
+                    class="w-full py-4 text-white font-bold text-xl bg-indigo-600 hover:bg-indigo-700 transition duration-150 rounded-lg shadow-lg transform hover:scale-[1.01] active:scale-[0.99] focus:outline-none focus:ring-4 focus:ring-indigo-500 focus:ring-opacity-50">
+                Launch Full-Screen Video (Foreground Mode)
+            </button>
+            
+            <div class="mt-8 space-y-4 text-sm text-gray-500">
+                <p>This is placeholder content. When the video modal is active, this text and the button above will appear slightly blurred and dimmed, achieving the background effect.</p>
+                <p>
+                    <span class="font-medium text-gray-700">Note:</span> Please replace the placeholder video URL in the HTML (`your-mp4-video-url-here.mp4`) with the public link to your actual MP4 file.
+                </p>
+            </div>
+        </main>
+    </div>
+
+    <!-- 
+        VIDEO MODAL OVERLAY (Initially Hidden)
+        This is the shell where the video moves when opened as the large player.
+    -->
+    <div id="video-modal" 
+         class="modal-backdrop fixed inset-0 z-50 hidden flex items-center justify-center p-4" 
+         aria-modal="true" 
+         role="dialog">
+        
+        <!-- Video Wrapper inside Modal (to help position the close button relative to the video) -->
+        <div id="modal-video-wrapper" class="relative w-full max-w-7xl h-full flex items-center justify-center">
+
+            <!-- Close Button (Positioned relative to the video wrapper) -->
+            <button id="close-video-btn" 
+                    class="absolute top-4 right-4 text-white bg-red-600 p-2 rounded-full shadow-lg transition hover:bg-red-700 focus:outline-none focus:ring-4 focus:ring-red-500 focus:ring-opacity-50 z-50"
+                    aria-label="Close video player">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const appContainer = document.getElementById('app-container');
+        const videoModal = document.getElementById('video-modal');
+        const openBtn = document.getElementById('open-video-btn');
+        const closeBtn = document.getElementById('close-video-btn');
+        const mainVideo = document.getElementById('main-video');
+        
+        // New elements for the mini/max player functionality
+        const miniPlayerContainer = document.getElementById('mini-player-container');
+        const modalVideoWrapper = document.getElementById('modal-video-wrapper');
+
+        // Define class strings for easy switching
+        const MINI_PLAYER_CLASS = 'w-full h-auto rounded-lg';
+        const LARGE_PLAYER_CLASS = 'w-full h-auto max-h-[90vh] rounded-xl shadow-2xl';
+
+        // --- Core Functions ---
+
+        /**
+         * Opens the modal, moves the video to the foreground, and applies the "background" effect to the main content.
+         */
+        const showVideo = () => {
+            // 1. Move video to modal wrapper
+            modalVideoWrapper.insertBefore(mainVideo, closeBtn); 
+            // 2. Adjust styling to large player
+            mainVideo.className = LARGE_PLAYER_CLASS; 
+            
+            // 3. Show the modal overlay
+            videoModal.classList.remove('hidden');
+            
+            // 4. Hide the mini-player container area
+            miniPlayerContainer.classList.add('hidden'); 
+            
+            // 5. Apply background effect
+            appContainer.classList.add('filter', 'blur-sm', 'opacity-50', 'pointer-events-none');
+            
+            // Explicitly load the media element state before playing
+            mainVideo.load();
+            
+            // 6. Attempt to start the video playback
+            mainVideo.play().catch(error => {
+                // Ignore AbortError which is usually a non-critical race condition or browser policy
+                if (error.name === 'AbortError') {
+                    console.log("Video playback request aborted, likely due to browser policy or element state change. Ignoring console error.");
+                } else {
+                    console.error("Autoplay prevented or video error:", error);
+                    displayMessage("Click the play button to start the video.", "Playback Info");
+                }
+            });
+
+            // Set focus to the close button for accessibility
+            closeBtn.focus();
+        };
+
+        /**
+         * Closes the modal, moves the video back to the tile, and removes the "background" effect.
+         */
+        const hideVideo = () => {
+            // 1. Pause video
+            mainVideo.pause();
+            
+            // 2. Move video back to mini-player container
+            miniPlayerContainer.appendChild(mainVideo);
+            // 3. Adjust styling back to mini player
+            mainVideo.className = MINI_PLAYER_CLASS;
+            
+            // 4. Show mini-player container
+            miniPlayerContainer.classList.remove('hidden');
+            
+            // 5. Hide the modal overlay
+            videoModal.classList.add('hidden');
+            
+            // 6. Remove the 'background' style from the main page content
+            appContainer.classList.remove('filter', 'blur-sm', 'opacity-50', 'pointer-events-none');
+        };
+
+        /**
+         * Displays a simple, non-alert message box in the top right corner.
+         */
+        const displayMessage = (message, title = "Notification") => {
+            const msgBox = document.createElement('div');
+            msgBox.innerHTML = `
+                <div class="fixed top-4 right-4 bg-yellow-500 text-white p-4 rounded-lg shadow-xl z-[9001]">
+                    <h3 class="font-bold">${title}</h3>
+                    <p class="text-sm mt-1">${message}</p>
+                </div>
+            `;
+            document.body.appendChild(msgBox);
+            setTimeout(() => msgBox.remove(), 5000); // Remove after 5 seconds
+        };
+
+
+        // --- Event Listeners ---
+
+        // 1. Open Button Click
+        openBtn.addEventListener('click', showVideo);
+
+        // 2. Close Button Click
+        closeBtn.addEventListener('click', hideVideo);
+
+        // 3. Close when clicking outside the video (on the modal backdrop)
+        videoModal.addEventListener('click', (event) => {
+            // Check if the click occurred directly on the modal container itself (not the video or close button)
+            if (event.target === videoModal) {
+                hideVideo();
+            }
+        });
+
+        // 4. Close on Escape key press
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && !videoModal.classList.contains('hidden')) {
+                hideVideo();
+            }
+        });
+
+        // Initial setup for the placeholder video message
+        window.onload = () => {
+             // Check the src of the first source element, not the video element itself
+             const sourceElement = mainVideo.querySelector('source');
+             if (sourceElement && sourceElement.src.includes('your-mp4-video-url-here.mp4')) {
+                displayMessage("Remember to replace the placeholder URL with your actual MP4 link!", "Setup Required");
+            }
+        };
+
+    </script>
+</body>
+</html>
